@@ -1,7 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import React from "react";
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
 import { Icon } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
+
+// Set the API key
+// GooglePlacesAutocomplete.setAPIKey('AIzaSyAiXx54r-yAJ4Z-rHbzmJZFl-JbwipjJwI');
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -9,25 +13,21 @@ export default function HomeScreen() {
   const goToMaps = () => {
     navigation.navigate("SearchMapStack");
   }
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>HomeScreen</Text>
 
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => {
-          goToMaps();
+
+  return (
+      <GooglePlacesAutocomplete
+        placeholder="Ingresa restaurante, bar, etc."
+        onPress={(data, details = null) => {
+          // 'details' is provided when fetchDetails = true
+          console.log('Buscando datos...');
+          console.log(data, details);
         }}
-      >
-        <Icon
-          name="location-pin"
-          type="entypo"
-          color="white"
-          size={30}
-          style={styles.icon}
-        />
-      </TouchableOpacity>
-    </View>
+        query={{ key: 'AIzaSyAiXx54r-yAJ4Z-rHbzmJZFl-JbwipjJwI', language: 'en', region: 'mx', types: ['restaurant'] }}
+        fetchDetails={true}
+        onFail={error => console.log(error)}
+        onNotFound={() => console.log('no results')}
+      />
   );
 }
 
