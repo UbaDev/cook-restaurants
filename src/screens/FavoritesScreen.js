@@ -3,6 +3,7 @@ import React from 'react'
 import CardFavorites from '../components/card/CardFavorites'
 
 
+
 export default function FavoritesScreen() {
   return (
     <View style={{

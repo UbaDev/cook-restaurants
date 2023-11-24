@@ -4,6 +4,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import HomeScreen from "../screens/HomeScreen";
 import SearchMapStack from "./stacks/SearchMapStack";
 import SearchMapNearStack from "./stacks/SearchMapNearStack";
+import ProductDetailStack from "./stacks/ProductDetailStack";
 
 const Stack = createStackNavigator();
 
@@ -25,6 +26,13 @@ const HomeNavigator = () => {
         component={SearchMapNearStack}
         options={{ headerShown: false }}
       />
+
+      <Stack.Screen
+        name="ProductDetailStack"
+        component={ProductDetailStack}
+        options={{ headerShown: false, }}
+      />
+
 
     </Stack.Navigator>
   );
