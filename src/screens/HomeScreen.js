@@ -18,12 +18,19 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1}}>
       
-        <View style={{ backgroundColor: "white",paddingTop: 60, paddingBottom: 10,justifyContent: "flex-end", paddingHorizontal: 20}}>
-          <Text style={{fontSize: 18, fontWeight: "bold", }}>Categorías</Text>
+        <View style={{ backgroundColor: "white",paddingTop: 60, paddingBottom: 10,justifyContent: "flex-end", paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.1)"}}>
+          <Text style={{fontSize: 18, fontWeight: "bold", textAlign: "center" }}>Inicio</Text>
+
+
         </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        
+        <View style={{ backgroundColor: "white", paddingHorizontal: 20, paddingTop: 20}}>
+          <Text style={{ fontSize: 15, fontWeight: "bold"}}>Categorías</Text>
+
+        </View>
           <View style={styles.header}>
+
+         
 
             <View style={{ alignItems: "center" }}>
               <TouchableOpacity style={styles.containerRating}>
@@ -55,7 +62,7 @@ export default function HomeScreen() {
 
 
 
-        <View style={{ backgroundColor: "white", borderRadius: 20, paddingHorizontal: 20 }}>
+        <View style={{ backgroundColor: "white", borderRadius: 20, paddingHorizontal: 20, marginTop: 20, marginHorizontal: 20 }}>
           <View style={{ paddingVertical: 30, paddingLeft: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: "bold" }}>Mejores resturantes</Text>
           </View>
@@ -93,7 +100,7 @@ export default function HomeScreen() {
          
         </View>
 
-        <View style={{ backgroundColor: "white", borderRadius: 20, marginVertical: 20 }}>
+        <View style={{ backgroundColor: "white", borderRadius: 20, marginVertical: 20, marginHorizontal: 20 }}>
           <View style={{ paddingTop: 30, paddingLeft: 20 }}>
             <Text style={{ fontSize: 16, fontWeight: "bold" }}>Lista resturantes</Text>
           </View>
