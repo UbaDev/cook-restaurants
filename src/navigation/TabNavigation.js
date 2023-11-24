@@ -15,21 +15,22 @@ export default function TabNavigation() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: (routeStatus) => setIcon(route, routeStatus),
-        tabBarLabel: "",
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: "#fff",
-          borderTopLeftRadius: 25,
-          borderTopRightRadius: 25,
-          height: "8%",
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          justifyContent: "center",
+          alignItems: "center",
         },
       })}
     >
       <Tab.Screen name="Home" component={HomeNavigator} options={{
-        headerShown: false,
+        headerShown: true, title: "Categorias", 
         
       }}/>
 
-      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{headerShown: false}} />
 
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
 
@@ -41,7 +42,7 @@ export default function TabNavigation() {
 const setIcon = (route, routeStatus) => {
   let iconName = "";
   let color = "#C5CBD3";
-  let iconSize = 24; 
+  let iconSize = 25; 
   if (routeStatus.focused) {
     color = "#EF9F27";
   }
@@ -58,5 +59,5 @@ const setIcon = (route, routeStatus) => {
   if (route.name === "Profile") {
     iconName = "user";
   }
-  return <AwesomeIcon name={iconName} color={color} size={iconSize} />;
+  return <AwesomeIcon name={iconName} color={color} size={iconSize}  />;
 };
