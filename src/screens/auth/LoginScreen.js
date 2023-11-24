@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import CustomInput from '../../components/input/CutomInput'
 
+
 export default function LoginScreen() {
   return (
     <View style={{marginBottom: 10}}>
@@ -10,6 +11,7 @@ export default function LoginScreen() {
         placeholder="Contraseña"
         secureTextEntry
       />
+      
     </View>
   );
 }

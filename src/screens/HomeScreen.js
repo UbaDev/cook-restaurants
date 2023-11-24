@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React from "react";
 import { Icon } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -10,8 +11,10 @@ export default function HomeScreen() {
     navigation.navigate("SearchMapStack");
   }
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>HomeScreen</Text>
+    <View style={{ flex: 1,  }}>
+      <View style={styles.header}>
+        <Text>Home Screen</Text>
+      </View>
 
       <TouchableOpacity
         style={styles.floatingButton}
