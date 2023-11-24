@@ -33,7 +33,7 @@ export default function TabNavigation() {
 
       <Tab.Screen name="Favorites" component={FavoritesScreen} />
 
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{title:"Perfil"}} />
     </Tab.Navigator>
   );
 }
