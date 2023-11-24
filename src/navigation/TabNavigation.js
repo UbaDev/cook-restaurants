@@ -26,7 +26,7 @@ export default function TabNavigation() {
       })}
     >
       <Tab.Screen name="Home" component={HomeNavigator} options={{
-        headerShown: true, title: "Categorias", 
+        headerShown: false, title: "Categorias", 
         
       }}/>
 

@@ -2,8 +2,14 @@ import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Items from "../../utils/items"
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
 
 export default function CardFavorites() {
+    const navigation = useNavigation();
+
+    const goDetail = () => {
+        navigation.navigate("ProductDetailStack")
+    }
     return (
 
         <View style={styles.container}>
