@@ -12,27 +12,29 @@ export default function SearchMapStack() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor:"#ffffff" }}>
-      <View style={styles.perfil}>
-        <Image source={require("../../../assets/images/iconmapa.png")} style={styles.image} />
-      </View>
-      <View style={styles.containertext}>
-        <Text style={styles.text1}>Buscar Restaurantes</Text>
-        <Text style={styles.text2}>Introduce tu ubicación o permite el acceso a la aplicación</Text>
-      </View>
-     
-      <TouchableOpacity style={styles.locationButton} onPress={goMaps}>
-        <Text style={styles.text3}>Usar mi ubicación</Text>
-      </TouchableOpacity>
-     
-      <View style={styles.inputContainer}>
-        <Icon name="map-pin" size={20} color="rgba(0,0,0,0.2)" style={styles.icon} />
-        <TextInput
-          placeholder="Codigo Postal"
-          style={styles.input}
-        />
-      </View>
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+ 
+        <View style={styles.perfil}>
+          <Image source={require("../../../assets/images/iconmapa.png")} style={styles.image} />
+        </View>
+        <View style={styles.containertext}>
+          <Text style={styles.text1}>Buscar Restaurantes</Text>
+          <Text style={styles.text2}>Introduce tu ubicación o permite el acceso a la aplicación</Text>
+        </View>
+
+        <TouchableOpacity style={styles.locationButton} onPress={goMaps}>
+          <Text style={styles.text3}>Usar mi ubicación</Text>
+        </TouchableOpacity>
+
+        <View style={styles.inputContainer}>
+          <Icon name="map-pin" size={20} color="rgba(0,0,0,0.2)" style={styles.icon} />
+          <TextInput
+            placeholder="Codigo Postal"
+            style={styles.input}
+          />
+        </View>
     </View>
+
   );
 }
 
@@ -50,15 +52,16 @@ const styles = StyleSheet.create({
   containertext: {
     alignItems: "center",
     marginBottom: 15,
+    marginHorizontal: 20,
   },
   text1:{
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#EF9F27",
     marginBottom: 20,
   },
   text2:{
-    fontSize: 20,
+    fontSize: 16,
     color: "rgba(0,0,0,0.2)",
     textAlign: "center",
   },
@@ -78,6 +81,7 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignSelf: 'center',
+    marginHorizontal: 20
   },
   inputContainer: {
     flexDirection: 'row',
@@ -89,6 +93,7 @@ const styles = StyleSheet.create({
     height: "7%",
     alignSelf: 'center',
     marginVertical: 10,
+    marginHorizontal: 20
   },
   input: {
     color: 'gray',

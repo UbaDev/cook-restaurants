@@ -53,10 +53,7 @@ export default function AuthScreen() {
           <View>
             {isLogin ? <LoginScreen /> : <RegisterScreen />}
 
-            <CustomButton
-              title={isLogin ? "Iniciar sesión" : "Registrarse"}
-              onPress={() => {}}
-            />
+           
             <Text
               style={{
                 marginVertical: 20,

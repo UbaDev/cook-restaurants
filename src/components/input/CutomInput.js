@@ -7,6 +7,8 @@ const CustomInput = ({
   onChangeText,
   onFocus,
   onBlur,
+  error,
+  disabled,
   secureTextEntry,
   ...rest
 }) => {
@@ -26,6 +28,8 @@ const CustomInput = ({
     <TextInput
       placeholder={placeholder}
       value={value}
+      error={error}
+      disabled={disabled}
       onChangeText={onChangeText}
       onFocus={handleFocus}
       onBlur={handleBlur}

@@ -3,7 +3,7 @@ import React from 'react'
 
 export default function SearchMapNearStack() {
   return (
-    <View style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={{ flex: 1, backgroundColor: "white",  }}>
      <View style={styles.containermapa}>
         <Image source={require("../../../assets/images/Map.png")} style={styles.mapa}/>
      </View>

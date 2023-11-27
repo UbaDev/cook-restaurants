@@ -1,19 +1,120 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, Modal, Pressable, } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, Modal, Pressable, ScrollView } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { FontAwesome } from '@expo/vector-icons'
 import CustomInput from '../components/input/CutomInput';
 import CustomButton from '../components/button/CustomButton';
+import { auth } from '../utils/db';
+import { getAuth, onAuthStateChanged, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from '../utils/db';
+import { updatePassword } from 'firebase/auth';
+import { updateDoc } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
+
+
 
 export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible2, setModalVisible2] = useState(false);
+  const [name, setName] = useState('');
+  const [newName, setNewName] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [currentEmail, setCurrentEmail] = useState(initialState = auth.currentUser.email);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [repeatNewPassword, setRepeatNewPassword] = useState('');
+
+  const logout = () => {
+    auth.signOut();
+    Alert.alert('Se ha cerrado sesión', 'Vuelve pronto');
+  }
+
+  const obtenerNombreDeUsuario = async () => {
+    const auth = getAuth();
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const username = userDoc.data().username;
+            setName(username);
+          } else {
+            console.log('El documento del usuario no existe en Firestore');
+          }
+        } catch (error) {
+          console.error('Error al obtener el nombre de usuario:', error);
+        }
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!modalVisible) {
+      obtenerNombreDeUsuario();
+    }
+  }, [modalVisible]);
+
+  const handleUpdateData = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+
+
+      const userDocRef = doc(db, 'users', user.uid);
+      await updateDoc(userDocRef, { username: newName });
+
+      setModalVisible(false);
+    } catch (error) {
+      console.error('Error al actualizar los datos:', error);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    obtenerNombreDeUsuario(); 
+  };
+
+  const handleChangePassword = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      // Validar que las contraseñas nuevas coincidan
+      if (newPassword !== repeatNewPassword) {
+        Alert.alert('Error', 'Las contraseñas no coinciden');
+        return;
+      }
+
+      // Reautenticar al usuario antes de cambiar la contraseña
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // Cambiar la contraseña
+      await updatePassword(user, newPassword);
+
+      // Cerrar el modal
+      setModalVisible2(false);
+
+      // Mensaje de éxito o lógica adicional si es necesario
+      Alert.alert('Contraseña actualizada', 'Tu contraseña ha sido cambiada exitosamente');
+    } catch (error) {
+      console.error('Error al cambiar la contraseña:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
+      
 
       <View style={styles.perfil}>
         <Image source={require("../../assets/images/logo-image.png")} style={styles.image} />
-        <Text style={styles.name}>El kike</Text>
+        <Text style={styles.name}>{name}</Text>
       </View>
 
       <View style={styles.container1} >
@@ -45,7 +146,7 @@ export default function ProfileScreen() {
 
       <View style={styles.container1} >
 
-        <TouchableOpacity style={styles.cuentacs}>
+        <TouchableOpacity style={styles.cuentacs} onPress={logout}>
           <View style={styles.containercs}>
             <FontAwesome name="sign-out" size={22} color="rgba(0,0,0,0.2)" />
             <View style={styles.viewgen}>
@@ -63,7 +164,7 @@ export default function ProfileScreen() {
         visible={modalVisible}
         onRequestClose={() => {
           Alert.alert('Modal has been closed.');
-          setModalVisible(!modalVisible);
+          handleCloseModal();
         }}>
         <View style={styles.centeredView}>
 
@@ -73,20 +174,22 @@ export default function ProfileScreen() {
             </Pressable>
             <Text style={styles.modalText}>Información de la cuenta</Text>
             <View style={styles.datosview}>
-              <Text style={styles.datos}>Nombre Completo</Text>
-              <CustomInput  placeholder = "Nombre" />
+              <Text style={styles.datos}>Nuevo nombre</Text>
+              <CustomInput
+                placeholder="Nombre"
+                value={newName}
+                onChangeText={setNewName}
+              />
             </View>
+            
             <View style={styles.datosview}>
               <Text style={styles.datos}>Correo electronico</Text>
-              <CustomInput {...{ placeholder: "Correo" }} />
+              <CustomInput
+                placeholder="Nuevo correo electrónico"
+                value={currentEmail}
+              />
             </View>
-            <View style={styles.datosview}>
-              <Text style={styles.datos} >Teléfono</Text>
-              <CustomInput {...{ placeholder: "Teléfono" }} />
-            </View>
-
-
-            <CustomButton title="Actualizar datos" />
+            <CustomButton title="Actualizar datos" onPress={handleUpdateData} />
           </View>
 
 
@@ -110,16 +213,26 @@ export default function ProfileScreen() {
             <Text style={styles.modalText}>Cambiar Contraseña</Text>
             <View style={styles.datosview}>
               <Text style={styles.datos}>Nueva contraseña</Text>
-              <CustomInput  placeholder = "Nueva Contraseña"secureTextEntry />
+              <CustomInput
+                placeholder="Nueva Contraseña"
+                secureTextEntry
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+              />
             </View>
             <View style={styles.datosview}>
               <Text style={styles.datos}>Repetir Contraseña</Text>
-              <CustomInput {...{ placeholder: "Repetir contraseña" }} secureTextEntry/>
+              <CustomInput
+                placeholder="Repetir contraseña"
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
             </View>
             
 
 
-            <CustomButton title="Actualizar Contraseña" />
+            <CustomButton title="Actualizar Contraseña" onPress={handleChangePassword} />
           </View>
 
 
@@ -152,13 +265,14 @@ const styles = StyleSheet.create({
     height: 120,
   },
   name: {
-    fontSize: 28,
+    fontSize: 26,
+    marginTop: 10,
 
   },
   container1: {
-    paddingVertical: 20,
+    paddingVertical: 15,
     borderRadius: 10,
-    marginTop: 55,
+    marginTop: 40,
     backgroundColor: '#ffffff',
     width: '90%',
   },

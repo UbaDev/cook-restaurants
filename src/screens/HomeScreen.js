@@ -1,11 +1,15 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from "react-native";
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { Icon } from "react-native-elements";
-import { useNavigation } from "@react-navigation/native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { getDoc, doc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { db } from '../utils/db';
+import { auth } from '../utils/db';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+  const [name, setName] = useState('');
 
   const goToMaps = () => {
     navigation.navigate("SearchMapStack");
@@ -15,11 +19,42 @@ export default function HomeScreen() {
     navigation.navigate("ProductDetailStack");
   }
 
+  const obtenerNombreDeUsuario = async () => {
+    const auth = getAuth();
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const username = userDoc.data().username;
+            setName(username);
+          } else {
+            console.log('El documento del usuario no existe en Firestore');
+          }
+        } catch (error) {
+          console.error('Error al obtener el nombre de usuario:', error);
+        }
+      }
+    });
+  };
+
+useFocusEffect(
+  React.useCallback(() => {
+    obtenerNombreDeUsuario();
+  }, [])
+);
+
+  
+
   return (
     <View style={{ flex: 1}}>
       
         <View style={{ backgroundColor: "white",paddingTop: 60, paddingBottom: 10,justifyContent: "flex-end", paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.1)"}}>
-          <Text style={{fontSize: 18, fontWeight: "bold", textAlign: "center" }}>Inicio</Text>
+          <Text style={{fontSize: 18, fontWeight: "bold" }}>Bienvenido {name} 👋🏻</Text>
 
 
         </View>
