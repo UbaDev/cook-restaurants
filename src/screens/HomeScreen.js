@@ -1,13 +1,51 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from "react-native";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "react-native-elements";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { getDoc, doc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../utils/db';
 import { auth } from '../utils/db';
+import { getPlaces } from '../api/apiPlace';
 
 export default function HomeScreen() {
+  const [places, setPlaces] = useState([]);
+
+  // useEffect(() => {
+  //   const query = "comida";
+  //   const region = "mx:qro";
+  //   const maxResults = 10;
+
+  //   // Wrapper asíncrono para esperar a que places se actualice
+  //   (async () => {
+  //     const places = await getPlaces(query, region, maxResults);
+  //     setPlaces(places);
+  //   })();
+  // }, []);
+  const location = {
+    latitude: 25.12345,
+    longitude: -100.12345,
+  };
+
+  useEffect(() => {
+    const location = '20.606898, -100.394212'; 
+
+    // 20.606898, -100.394212
+
+    const radius = 1000;
+    const types = "restaurant";
+    const query = "food";
+    const region = "mx:qro";
+    const maxResults = 5;
+
+    getPlaces(location, radius, types, query, region, maxResults).then((response) => {
+      console.log("este es el response: ", response);        
+      setPlaces(response.results);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }, []);
+
   const navigation = useNavigation();
   const [name, setName] = useState('');
 
@@ -42,58 +80,65 @@ export default function HomeScreen() {
     });
   };
 
-useFocusEffect(
-  React.useCallback(() => {
-    obtenerNombreDeUsuario();
-  }, [])
-);
+  useFocusEffect(
+    React.useCallback(() => {
+      obtenerNombreDeUsuario();
+    }, [])
+  );
 
-  
+
 
   return (
-    <View style={{ flex: 1}}>
-      
-        <View style={{ backgroundColor: "white",paddingTop: 60, paddingBottom: 10,justifyContent: "flex-end", paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.1)"}}>
-          <Text style={{fontSize: 18, fontWeight: "bold" }}>Bienvenido {name} 👋🏻</Text>
+    <View style={{ flex: 1 }}>
+
+      <View style={{ backgroundColor: "white", paddingTop: 60, paddingBottom: 10, justifyContent: "flex-end", paddingHorizontal: 20, borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.1)" }}>
+        <Text style={{ fontSize: 18, fontWeight: "bold" }}>Bienvenido {name} 👋🏻</Text>
 
 
-        </View>
+      </View>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ backgroundColor: "white", paddingHorizontal: 20, paddingTop: 20}}>
-          <Text style={{ fontSize: 15, fontWeight: "bold"}}>Categorías</Text>
+        {/* {places.map((place) => (
+          <View key={place.place_id} style={styles.listItem}>
+            <Text style={{ fontSize: 16, fontWeight: "bold" }}>{place.name}</Text>
+            <Text style={{ fontSize: 14, color: "#777" }}>{place.vicinity}</Text>
+          </View>
+        ))} */}
+        {/* {console.log(places)} */}
+        <View style={{ backgroundColor: "white", paddingHorizontal: 20, paddingTop: 20 }}>
+          <Text style={{ fontSize: 15, fontWeight: "bold" }}>Categorías</Text>
 
         </View>
-          <View style={styles.header}>
-
-         
-
-            <View style={{ alignItems: "center" }}>
-              <TouchableOpacity style={styles.containerRating}>
-                <Image source={require("../../assets/icons/5-estrellas.png")} style={styles.stars} />
-              </TouchableOpacity>
-              <Text style={{ marginTop: 10 }}>5 estrellas</Text>
-
-            </View>
-            <View style={{ alignItems: "center" }}>
-              <TouchableOpacity style={styles.containerRating}>
-                <Image source={require("../../assets/icons/4-estrellas.png")} style={styles.stars} />
-              </TouchableOpacity>
-              <Text style={{ marginTop: 10 }}>4 estrellas</Text>
-            </View>
-
-            <View style={{ alignItems: "center" }}>
-
-              <TouchableOpacity style={styles.containerRating}>
-
-                <Image source={require("../../assets/icons/3-estrellas.png")} style={styles.stars} />
-              </TouchableOpacity>
-              <Text style={{ marginTop: 10 }}>3 estrellas</Text>
-
-            </View>
+        <View style={styles.header}>
 
 
+
+          <View style={{ alignItems: "center" }}>
+            <TouchableOpacity style={styles.containerRating}>
+              <Image source={require("../../assets/icons/5-estrellas.png")} style={styles.stars} />
+            </TouchableOpacity>
+            <Text style={{ marginTop: 10 }}>5 estrellas</Text>
 
           </View>
+          <View style={{ alignItems: "center" }}>
+            <TouchableOpacity style={styles.containerRating}>
+              <Image source={require("../../assets/icons/4-estrellas.png")} style={styles.stars} />
+            </TouchableOpacity>
+            <Text style={{ marginTop: 10 }}>4 estrellas</Text>
+          </View>
+
+          <View style={{ alignItems: "center" }}>
+
+            <TouchableOpacity style={styles.containerRating}>
+
+              <Image source={require("../../assets/icons/3-estrellas.png")} style={styles.stars} />
+            </TouchableOpacity>
+            <Text style={{ marginTop: 10 }}>3 estrellas</Text>
+
+          </View>
+
+
+
+        </View>
 
 
 
@@ -132,7 +177,7 @@ useFocusEffect(
               </View>
             </TouchableOpacity>
           </ScrollView>
-         
+
         </View>
 
         <View style={{ backgroundColor: "white", borderRadius: 20, marginVertical: 20, marginHorizontal: 20 }}>
@@ -205,7 +250,7 @@ useFocusEffect(
             </View>
           </TouchableOpacity>
 
-          
+
         </View>
 
 

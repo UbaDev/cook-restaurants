@@ -1,5 +1,5 @@
 export const ENV = {
-    API_PLACE: 'http://192.168.1.247:1337/api',
+    APIKEY_PLACE: 'AIzaSyAiXx54r-yAJ4Z-rHbzmJZFl-JbwipjJwI',
 
     ENDPOINTS: {
     },
