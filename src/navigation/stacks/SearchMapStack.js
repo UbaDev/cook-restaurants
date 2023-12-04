@@ -26,13 +26,7 @@ export default function SearchMapStack() {
           <Text style={styles.text3}>Usar mi ubicación</Text>
         </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
-          <Icon name="map-pin" size={20} color="rgba(0,0,0,0.2)" style={styles.icon} />
-          <TextInput
-            placeholder="Codigo Postal"
-            style={styles.input}
-          />
-        </View>
+        
     </View>
 
   );
