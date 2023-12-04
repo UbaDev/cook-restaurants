@@ -10,6 +10,16 @@ import { getPlaces } from '../api/apiPlace';
 
 export default function HomeScreen() {
   const [places, setPlaces] = useState([]);
+  const [top5Places, setTop5Places] = useState([]);
+
+  useEffect(() => {
+    const sortedPlaces = [...places].sort((a, b) => b.rating - a.rating);
+
+    const top5 = sortedPlaces.slice(0, 5);
+
+    setTop5Places(top5);
+  }, [places]);
+
 
   // useEffect(() => {
   //   const query = "comida";
@@ -28,7 +38,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const location = '20.606898, -100.394212'; 
+    const location = '20.606898, -100.394212';
 
     // 20.606898, -100.394212
 
@@ -39,7 +49,6 @@ export default function HomeScreen() {
     const maxResults = 5;
 
     getPlaces(location, radius, types, query, region, maxResults).then((response) => {
-      console.log("este es el response: ", response);        
       setPlaces(response.results);
     }).catch((error) => {
       console.log(error);
@@ -85,6 +94,14 @@ export default function HomeScreen() {
       obtenerNombreDeUsuario();
     }, [])
   );
+
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) {
+      return text;
+    } else {
+      return text.substring(0, maxLength) + '...';
+    }
+  };
 
 
 
@@ -143,39 +160,34 @@ export default function HomeScreen() {
 
 
         <View style={{ backgroundColor: "white", borderRadius: 20, paddingHorizontal: 20, marginTop: 20, marginHorizontal: 20 }}>
-          <View style={{ paddingVertical: 30, paddingLeft: 20 }}>
+          <View style={{ paddingVertical: 30, paddingLeft: 0 }}>
             <Text style={{ fontSize: 16, fontWeight: "bold" }}>Mejores resturantes</Text>
           </View>
           <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity style={{ alignSelf: "center" }} onPress={goToDetail}>
-              <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 210, height: 130, borderRadius: 20, }} />
-              <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-              <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-              <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-                <Icon name="star" size={20} color="white" />
-                <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-              </View>
-            </TouchableOpacity>
 
-            <TouchableOpacity style={{ alignSelf: "center", marginHorizontal: 20 }}>
-              <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 210, height: 130, borderRadius: 20, }} />
-              <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-              <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
+            {top5Places.map((place, index) => (
+            
+              <TouchableOpacity key={index} style={{ alignSelf: "center", marginRight: 15 }} onPress={goToDetail}>
+                <Image
+                  source={
+                    place.photos && place.photos.length > 0
+                      ? { uri: place.photos[0] }
+                      : require("../../assets/images/logo.jpeg")
+                  }
+                  style={{ width: 210, height: 130, borderRadius: 20 }}
+                />
+                <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left",  }}>
+                  {truncateText(place.name, 18)}
+                </Text>
+                <View style={{width: 200}}>
+                  <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>{truncateText(place.vicinity, 40)}</Text>
+                </View>
               <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
                 <Icon name="star" size={20} color="white" />
-                <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
+                <Text style={{ color: "white", textAlign: "center" }}>{(place.rating).toFixed(1)}</Text>
               </View>
             </TouchableOpacity>
-
-            <TouchableOpacity style={{ alignSelf: "center", marginHorizontal: 20 }}>
-              <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 210, height: 130, borderRadius: 20, }} />
-              <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-              <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-              <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-                <Icon name="star" size={20} color="white" />
-                <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-              </View>
-            </TouchableOpacity>
+            ))}
           </ScrollView>
 
         </View>
@@ -194,62 +206,6 @@ export default function HomeScreen() {
               <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
             </View>
           </TouchableOpacity>
-
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
-            </View>
-          </TouchableOpacity>
-
 
         </View>
 
