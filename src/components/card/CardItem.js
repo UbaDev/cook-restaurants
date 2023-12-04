@@ -63,6 +63,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#eee",
         borderRadius: 10,
+        marginBottom: 15,
     },
     subContainer: {
         flexDirection: "row",
