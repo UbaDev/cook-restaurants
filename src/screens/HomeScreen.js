@@ -10,28 +10,10 @@ import { getPlaces } from '../api/apiPlace';
 
 export default function HomeScreen() {
   const [places, setPlaces] = useState([]);
-
-  // useEffect(() => {
-  //   const query = "comida";
-  //   const region = "mx:qro";
-  //   const maxResults = 10;
-
-  //   // Wrapper asíncrono para esperar a que places se actualice
-  //   (async () => {
-  //     const places = await getPlaces(query, region, maxResults);
-  //     setPlaces(places);
-  //   })();
-  // }, []);
-  const location = {
-    latitude: 25.12345,
-    longitude: -100.12345,
-  };
+ 
 
   useEffect(() => {
     const location = '20.606898, -100.394212'; 
-
-    // 20.606898, -100.394212
-
     const radius = 1000;
     const types = "restaurant";
     const query = "food";
