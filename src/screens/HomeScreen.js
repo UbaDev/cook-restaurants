@@ -38,10 +38,7 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const location = '20.606898, -100.394212';
-
-    // 20.606898, -100.394212
-
+    const location = '20.606898, -100.394212'; 
     const radius = 1000;
     const types = "restaurant";
     const query = "food";
@@ -230,6 +227,7 @@ export default function HomeScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
   floatingButton: {
     position: "absolute",
@@ -264,4 +262,4 @@ const styles = StyleSheet.create({
     height: 50,
   }
 
-});
+})

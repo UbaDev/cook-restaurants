@@ -1,16 +1,50 @@
 import { StyleSheet, Text, View, Image, TextInput} from 'react-native'
-import React from 'react'
+import React,  { useEffect, useState }  from 'react'
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from "@react-navigation/native";
+import * as Location from 'expo-location';
+
+
+
 
 export default function SearchMapStack() {
+
+  const [origin, setOrigin] = useState();
+
+  useEffect(() => {
+    (async () => {
+      
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      const current = {
+        latitude:location.coords.latitude,
+        longitude:location.coords.longitude
+      }
+      setOrigin(current);
+
+      console.log("aqui ", current );
+
+
+
+    })();
+  }, []);
+
+
   const navigation = useNavigation();
 
   const goMaps = () => {
-    navigation.navigate("SearchMapNearStack");
+    navigation.navigate("SearchMapNearStack", {
+      lat: origin.latitude,
+      long: origin.longitude,
+    });
   }
-
+  
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }}>
  
@@ -26,13 +60,7 @@ export default function SearchMapStack() {
           <Text style={styles.text3}>Usar mi ubicación</Text>
         </TouchableOpacity>
 
-        <View style={styles.inputContainer}>
-          <Icon name="map-pin" size={20} color="rgba(0,0,0,0.2)" style={styles.icon} />
-          <TextInput
-            placeholder="Codigo Postal"
-            style={styles.input}
-          />
-        </View>
+        
     </View>
 
   );
