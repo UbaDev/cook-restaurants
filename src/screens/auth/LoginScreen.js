@@ -18,12 +18,7 @@ export default function LoginScreen() {
       email: '',
       password: ''
     },
-    validationSchema: Yup.object({
-      email: Yup.string().email(true).required(true),
-      password: Yup.string().required(true).min(8, true)
-    }),
-    validateOnChange: false,
-      onSubmit: values => {
+    onSubmit: values => {
         signInWithEmailAndPassword(auth, values.email, values.password)
           .then(() => {
             navigation.reset({
