@@ -5,6 +5,8 @@ import { auth } from '../../utils/db';
 import CustomInput from '../../components/input/CutomInput';
 import { View, Button, Alert } from 'react-native';
 import CustomButton from '../../components/button/CustomButton';
+import React, {useState} from 'react';
+import * as Yup from 'yup';
 
 
 export default function LoginScreen() {
@@ -16,21 +18,26 @@ export default function LoginScreen() {
       email: '',
       password: ''
     },
-    onSubmit: values => {
-      signInWithEmailAndPassword(auth, values.email, values.password)
-        .then(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Home" }]
+    validationSchema: Yup.object({
+      email: Yup.string().email(true).required(true),
+      password: Yup.string().required(true).min(8, true)
+    }),
+    validateOnChange: false,
+      onSubmit: values => {
+        signInWithEmailAndPassword(auth, values.email, values.password)
+          .then(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Home" }]
+            });
+
+            Alert.alert('Inicio de sesión exitoso', 'Bienvenido a Cook Restaurants');
+
+          })
+          .catch(error => {
+            alert(error.message);
           });
-
-          Alert.alert('Inicio de sesión exitoso', 'Bienvenido a Cook Restaurants');
-
-        })
-        .catch(error => {
-          alert(error.message);
-        });
-    }
+      }
   });
 
   return (
@@ -39,6 +46,7 @@ export default function LoginScreen() {
         placeholder="Email"
         onChangeText={formik.handleChange('email')}
         value={formik.values.email}
+        error={formik.errors.email}
       />
 
       <CustomInput
@@ -46,6 +54,7 @@ export default function LoginScreen() {
         secureTextEntry
         onChangeText={formik.handleChange('password')}
         value={formik.values.password}
+        error={formik.errors.email}
       />
       <View style={{marginTop: 10}}>
         <CustomButton title="Iniciar Sesión" onPress={formik.handleSubmit} />
