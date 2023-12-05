@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, ActivityIndicator } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Icon } from "react-native-elements";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -6,11 +6,18 @@ import { getDoc, doc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { db } from '../utils/db';
 import { auth } from '../utils/db';
-import { getPlaces } from '../api/apiPlace';
+import { getPlaces, getPlaceDetails } from '../api/apiPlace';
+import { ENV } from '../utils/constants';
+import axios from 'axios';
+
+
 
 export default function HomeScreen() {
   const [places, setPlaces] = useState([]);
   const [top5Places, setTop5Places] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+
 
   useEffect(() => {
     const sortedPlaces = [...places].sort((a, b) => b.rating - a.rating);
@@ -21,36 +28,39 @@ export default function HomeScreen() {
   }, [places]);
 
 
-  // useEffect(() => {
-  //   const query = "comida";
-  //   const region = "mx:qro";
-  //   const maxResults = 10;
-
-  //   // Wrapper asíncrono para esperar a que places se actualice
-  //   (async () => {
-  //     const places = await getPlaces(query, region, maxResults);
-  //     setPlaces(places);
-  //   })();
-  // }, []);
-  const location = {
-    latitude: 25.12345,
-    longitude: -100.12345,
-  };
-
   useEffect(() => {
-    const location = '20.606898, -100.394212'; 
-    const radius = 1000;
-    const types = "restaurant";
-    const query = "food";
-    const region = "mx:qro";
-    const maxResults = 5;
+    const fetchData = async () => {
+      setLoading(true);
+      const location = '20.606898, -100.394212';
+      const radius = 1000;
+      const types = "restaurant";
+      const query = "food";
+      const region = "mx:qro";
+      const maxResults = 5;
 
-    getPlaces(location, radius, types, query, region, maxResults).then((response) => {
-      setPlaces(response.results);
-    }).catch((error) => {
-      console.log(error);
-    });
-  }, []);
+      try {
+        const response = await getPlaces(location, radius, types, query, region, maxResults);
+
+        if (response && response.results && response.results.length > 0) {
+          const placesWithDetails = await Promise.all(
+            response.results.map(async (result) => {
+              const details = await getPlaceDetails(result.place_id);
+              return { ...result, details };
+            })
+          );
+
+          setPlaces(placesWithDetails);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // El segundo argumento del useEffect es un array de dependencias, aquí está vacío para que se ejecute solo una vez al montar el componente
+
 
   const navigation = useNavigation();
   const [name, setName] = useState('');
@@ -59,8 +69,8 @@ export default function HomeScreen() {
     navigation.navigate("SearchMapStack");
   }
 
-  const goToDetail = () => {
-    navigation.navigate("ProductDetailStack");
+  const goToDetail = (place) => {
+    navigation.navigate("ProductDetailStack", { place });
   }
 
   const obtenerNombreDeUsuario = async () => {
@@ -100,8 +110,6 @@ export default function HomeScreen() {
     }
   };
 
-
-
   return (
     <View style={{ flex: 1 }}>
 
@@ -110,104 +118,145 @@ export default function HomeScreen() {
 
 
       </View>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* {places.map((place) => (
+      {loading ? <ActivityIndicator style={{ flex: 1, justifyContent: "center", alignSelf: "center" }} size="large" color="#EF9F27" /> : (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* {places.map((place) => (
           <View key={place.place_id} style={styles.listItem}>
             <Text style={{ fontSize: 16, fontWeight: "bold" }}>{place.name}</Text>
             <Text style={{ fontSize: 14, color: "#777" }}>{place.vicinity}</Text>
           </View>
         ))} */}
-        {/* {console.log(places)} */}
-        <View style={{ backgroundColor: "white", paddingHorizontal: 20, paddingTop: 20 }}>
-          <Text style={{ fontSize: 15, fontWeight: "bold" }}>Categorías</Text>
-
-        </View>
-        <View style={styles.header}>
-
-
-
-          <View style={{ alignItems: "center" }}>
-            <TouchableOpacity style={styles.containerRating}>
-              <Image source={require("../../assets/icons/5-estrellas.png")} style={styles.stars} />
-            </TouchableOpacity>
-            <Text style={{ marginTop: 10 }}>5 estrellas</Text>
+          {/* {console.log(places)} */}
+          <View style={{ backgroundColor: "white", paddingHorizontal: 20, paddingTop: 20 }}>
+            <Text style={{ fontSize: 15, fontWeight: "bold" }}>Categorías</Text>
 
           </View>
-          <View style={{ alignItems: "center" }}>
-            <TouchableOpacity style={styles.containerRating}>
-              <Image source={require("../../assets/icons/4-estrellas.png")} style={styles.stars} />
-            </TouchableOpacity>
-            <Text style={{ marginTop: 10 }}>4 estrellas</Text>
-          </View>
-
-          <View style={{ alignItems: "center" }}>
-
-            <TouchableOpacity style={styles.containerRating}>
-
-              <Image source={require("../../assets/icons/3-estrellas.png")} style={styles.stars} />
-            </TouchableOpacity>
-            <Text style={{ marginTop: 10 }}>3 estrellas</Text>
-
-          </View>
+          <View style={styles.header}>
 
 
 
-        </View>
+            <View style={{ alignItems: "center" }}>
+              <TouchableOpacity style={styles.containerRating}>
+                <Image source={require("../../assets/icons/5-estrellas.png")} style={styles.stars} />
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>5 estrellas</Text>
 
-
-
-        <View style={{ backgroundColor: "white", borderRadius: 20, paddingHorizontal: 20, marginTop: 20, marginHorizontal: 20 }}>
-          <View style={{ paddingVertical: 30, paddingLeft: 0 }}>
-            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Mejores resturantes</Text>
-          </View>
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-
-            {top5Places.map((place, index) => (
-            
-              <TouchableOpacity key={index} style={{ alignSelf: "center", marginRight: 15 }} onPress={goToDetail}>
-                <Image
-                  source={
-                    place.photos && place.photos.length > 0
-                      ? { uri: place.photos[0] }
-                      : require("../../assets/images/logo.jpeg")
-                  }
-                  style={{ width: 210, height: 130, borderRadius: 20 }}
-                />
-                <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left",  }}>
-                  {truncateText(place.name, 18)}
-                </Text>
-                <View style={{width: 200}}>
-                  <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>{truncateText(place.vicinity, 40)}</Text>
-                </View>
-              <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-                <Icon name="star" size={20} color="white" />
-                <Text style={{ color: "white", textAlign: "center" }}>{(place.rating).toFixed(1)}</Text>
-              </View>
-            </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-        </View>
-
-        <View style={{ backgroundColor: "white", borderRadius: 20, marginVertical: 20, marginHorizontal: 20 }}>
-          <View style={{ paddingTop: 30, paddingLeft: 20 }}>
-            <Text style={{ fontSize: 16, fontWeight: "bold" }}>Lista resturantes</Text>
-          </View>
-          <TouchableOpacity style={{ alignSelf: "center", marginVertical: 20 }}>
-
-            <Image source={require("../../assets/images/logo.jpeg")} style={{ width: 300, height: 180, borderRadius: 20, }} />
-            <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}>Burguer King</Text>
-            <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>Av. pie de la cuesta</Text>
-            <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <Icon name="star" size={20} color="white" />
-              <Text style={{ color: "white", textAlign: "center" }}>4.5</Text>
             </View>
-          </TouchableOpacity>
+            <View style={{ alignItems: "center" }}>
+              <TouchableOpacity style={styles.containerRating}>
+                <Image source={require("../../assets/icons/4-estrellas.png")} style={styles.stars} />
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>4 estrellas</Text>
+            </View>
 
-        </View>
+            <View style={{ alignItems: "center" }}>
+
+              <TouchableOpacity style={styles.containerRating}>
+
+                <Image source={require("../../assets/icons/3-estrellas.png")} style={styles.stars} />
+              </TouchableOpacity>
+              <Text style={{ marginTop: 10 }}>3 estrellas</Text>
+
+            </View>
 
 
-      </ScrollView>
+
+          </View>
+
+
+
+          <View style={{ backgroundColor: "white", borderRadius: 20, paddingHorizontal: 20, marginTop: 20, marginHorizontal: 20 }}>
+            <View style={{ paddingVertical: 30, paddingLeft: 0 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Mejores resturantes</Text>
+            </View>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+
+              {top5Places.map((place, index) => (
+                <View>
+                  <TouchableOpacity key={index} style={{ alignSelf: "center", marginRight: 15 }} onPress={() => goToDetail(place)}>
+                    {place?.photos?.[0]?.photo_reference ? (
+                      <Image
+                        source={{
+                          uri:
+                            "https://maps.googleapis.com/maps/api/place/photo" +
+                            "?maxwidth=400" +
+                            "&photo_reference=" +
+                            place?.photos?.[0]?.photo_reference +
+                            "&key=" + ENV.APIKEY_PLACE
+                        }}
+                        style={{ width: 210, height: 130, borderRadius: 20 }}
+                      />
+                    ) : (
+                      <Image
+                        source={require("../../assets/images/sin-imagen.png")}
+                        style={{ width: 140, height: 130, borderRadius: 20, alignSelf: "center" }}
+                      />
+                    )}
+
+                    <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left", }}>
+                      {truncateText(place.name, 18)}
+                    </Text>
+                    <View style={{ width: 200 }}>
+                      <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>{truncateText(place.vicinity, 40)}</Text>
+                    </View>
+                    <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
+                      <Icon name="star" size={20} color="white" />
+                      <Text style={{ color: "white", textAlign: "center" }}>{(place.rating).toFixed(1)}</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                </View>
+
+
+              ))}
+            </ScrollView>
+
+          </View>
+
+          <View style={{ backgroundColor: "white", borderRadius: 20, marginVertical: 20, marginHorizontal: 20 }}>
+            <View style={{ paddingTop: 30, paddingLeft: 20 }}>
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>Lista resturantes</Text>
+            </View>
+
+            {places.map((place, index) => (
+              <TouchableOpacity key={index} style={{ alignSelf: "center", marginVertical: 20 }} onPress={() => goToDetail(place)}>
+
+                {place?.photos?.[0]?.photo_reference ? (
+                  <Image
+                    source={{
+                      uri:
+                        "https://maps.googleapis.com/maps/api/place/photo" +
+                        "?maxwidth=400" +
+                        "&photo_reference=" +
+                        place?.photos?.[0]?.photo_reference +
+                        "&key=" + ENV.APIKEY_PLACE
+                    }}
+                    style={{ width: 300, height: 150, borderRadius: 20 }}
+                  />
+                ) : (
+                  <Image
+                    source={require("../../assets/images/sin-imagen.png")}
+                    style={{ width: 200, height: 150, borderRadius: 20, alignSelf: "center" }}
+                  />
+                )}
+
+
+                <Text style={{ fontSize: 18, marginTop: 10, textAlign: "left" }}> {truncateText(place.name, 30)}</Text>
+                <Text style={{ fontSize: 14, marginTop: 10, textAlign: "left", color: "gray" }}>{truncateText(place.vicinity, 40)}</Text>
+                <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
+                  <Icon name="star" size={20} color="white" />
+                  <Text style={{ color: "white", textAlign: "center" }}>{(place.rating).toFixed(1)}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+
+
+          </View>
+
+
+        </ScrollView>
+      )}
+     
 
       <TouchableOpacity
         style={styles.floatingButton}
