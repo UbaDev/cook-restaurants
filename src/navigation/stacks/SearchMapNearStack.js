@@ -57,7 +57,7 @@ export default function SearchMapNearStack(props) {
 
 
 
-
+console.log("info lugares ", places);
 
 
   return (
