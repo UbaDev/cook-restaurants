@@ -16,7 +16,43 @@ export default function HomeScreen() {
   const [places, setPlaces] = useState([]);
   const [top5Places, setTop5Places] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [placesWith5Stars, setPlacesWith5Stars] = useState([]);
+  const [placesWith4AndLessStars, setPlacesWith4AndLessStars] = useState([]);
+  const [placesWithThreeStars, setPlacesWithThreeStars] = useState([]);
+  const [selectedRating, setSelectedRating] = useState(null); 
 
+  const getCurrentList = () => {
+    switch (selectedRating) {
+      case 5:
+        return placesWith5Stars;
+      case 4:
+        return placesWith4AndLessStars;
+      case 3:
+        return placesWithThreeStars;
+      default:
+        return places;
+    }
+  };
+
+  
+
+  useEffect(() => {
+    const fetchFilteredPlaces = () => {
+      const placesWith5Stars = places.filter((place) => place.rating === 5);
+      const placesWith4AndLessStars = places.filter((place) => place.rating  < 5 && place.rating >= 4);
+      const placesWithThreeStars = places.filter((place) => place.rating <= 3);
+
+      setPlacesWith5Stars(placesWith5Stars);
+      setPlacesWith4AndLessStars(placesWith4AndLessStars);
+      setPlacesWithThreeStars(placesWithThreeStars);
+    };
+
+    fetchFilteredPlaces();
+  }, [places]);
+
+  const handleRatingFilter = (rating) => {
+    setSelectedRating(rating);
+  };
 
 
   useEffect(() => {
@@ -132,35 +168,33 @@ export default function HomeScreen() {
 
           </View>
           <View style={styles.header}>
-
-
-
             <View style={{ alignItems: "center" }}>
-              <TouchableOpacity style={styles.containerRating}>
+              <TouchableOpacity
+                style={styles.containerRating}
+                onPress={() => handleRatingFilter(5)}
+              >
                 <Image source={require("../../assets/icons/5-estrellas.png")} style={styles.stars} />
               </TouchableOpacity>
               <Text style={{ marginTop: 10 }}>5 estrellas</Text>
-
             </View>
             <View style={{ alignItems: "center" }}>
-              <TouchableOpacity style={styles.containerRating}>
+              <TouchableOpacity
+                style={styles.containerRating}
+                onPress={() => handleRatingFilter(4)}
+              >
                 <Image source={require("../../assets/icons/4-estrellas.png")} style={styles.stars} />
               </TouchableOpacity>
               <Text style={{ marginTop: 10 }}>4 estrellas</Text>
             </View>
-
             <View style={{ alignItems: "center" }}>
-
-              <TouchableOpacity style={styles.containerRating}>
-
+              <TouchableOpacity
+                style={styles.containerRating}
+                onPress={() => handleRatingFilter(3)}
+              >
                 <Image source={require("../../assets/icons/3-estrellas.png")} style={styles.stars} />
               </TouchableOpacity>
               <Text style={{ marginTop: 10 }}>3 estrellas</Text>
-
             </View>
-
-
-
           </View>
 
 
@@ -218,7 +252,7 @@ export default function HomeScreen() {
               <Text style={{ fontSize: 16, fontWeight: "bold" }}>Lista resturantes</Text>
             </View>
 
-            {places.map((place, index) => (
+            {getCurrentList().map((place, index) => (
               <TouchableOpacity key={index} style={{ alignSelf: "center", marginVertical: 20 }} onPress={() => goToDetail(place)}>
 
                 {place?.photos?.[0]?.photo_reference ? (
@@ -256,7 +290,7 @@ export default function HomeScreen() {
 
         </ScrollView>
       )}
-     
+
 
       <TouchableOpacity
         style={styles.floatingButton}

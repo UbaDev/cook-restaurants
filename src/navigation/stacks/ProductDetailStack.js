@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView, Modal, Button, Touchable, TextInput } from 'react-native'
+import { StyleSheet, Text, View, SafeAreaView, Image, ScrollView, Modal, Button, Touchable, TextInput, ActivityIndicator, Alert } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import CustomButton from '../../components/button/CustomButton';
 import { ENV } from '../../utils/constants';
 import { auth, db } from '../../utils/db';
-import { doc, getDoc, updateDoc, setDoc, getDocs, collection, addDoc, query, where, DocumentReference } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, getDocs, collection, addDoc, query, where, arrayUnion } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 
@@ -22,10 +22,14 @@ export default function ProductDetailStack({route}) {
     const [comment, setComment] = useState("");
     const [reviews, setReviews] = useState();
     const [name, setName] = useState("");
-    const [raiting, setRaiting] = useState(0); 
+    const [raiting, setRaiting] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [favorites, setFavorites] = useState([]);
+    console.log(raiting)
+    
     const handleRaitingPress = (value) => {
         setRaiting(value);
-        addRaitingToFirestore(); 
+        addRaitingToFirestore(value); 
         hideModal(); 
     };
 
@@ -66,6 +70,7 @@ useEffect(() => {
 
 
     const fetchRestaurantReviewsFromFirestore = async (restaurantName) => {
+        setLoading(true);
         const reviewCollectionRef = collection(db, 'reviews');
         const reviewQuery = query(reviewCollectionRef, where('restaurantName', '==', restaurantName));
 
@@ -75,6 +80,23 @@ useEffect(() => {
 
             // Actualiza el estado de las reviews del restaurante con los datos obtenidos
             setReviews(restaurantReviews);
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+            console.error('Error al obtener las reviews del restaurante de Firestore:', error);
+        }
+    };
+
+    const fetchRestaurantRaitingFromFirestore = async (restaurantName) => {
+        const reviewCollectionRef = collection(db, 'raiting');
+        const reviewQuery = query(reviewCollectionRef, where('restaurantName', '==', restaurantName));
+
+        try {
+            const reviewSnapshot = await getDocs(reviewQuery);
+            const restaurantReviews = reviewSnapshot.docs.map(doc => doc.data());
+
+            // Actualiza el estado de las reviews del restaurante con los datos obtenidos
+            setRaiting(restaurantReviews);
         } catch (error) {
             console.error('Error al obtener las reviews del restaurante de Firestore:', error);
         }
@@ -83,6 +105,7 @@ useEffect(() => {
     // Llama a esta función cuando necesites obtener las reviews de un restaurante por nombre (puede ser en useEffect u otro lugar)
     useEffect(() => {
         fetchRestaurantReviewsFromFirestore(place.name);
+        fetchRestaurantRaitingFromFirestore(place.name);
     }, [place.name]); 
 
     const hideModal2 = async () => {
@@ -126,71 +149,89 @@ useEffect(() => {
     };
 
 
-    const addRaitingToFirestore = async () => {
-        if (raiting > 0) {
-            const auth = getAuth();
-            const user = auth.currentUser;
+    const addRaitingToFirestore = (raitingValue) => {
+        if (raitingValue > 0) {
+            const raitingCollectionRef = collection(db, 'raiting');
+            const restaurantDocRef = doc(raitingCollectionRef, place.name);
 
-            if (user) {
-                const raitingDocRef = doc(db, 'raiting', user.uid); // Utiliza el ID del usuario como referencia
+            getDoc(restaurantDocRef)
+                .then((docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        // Si ya existe un documento para el restaurante, actualiza el rating
+                        const existingData = docSnapshot.data();
+                        const newRaiting = (existingData.raiting + raitingValue) / 2;
 
-                try {
-                    await setDoc(raitingDocRef, {
-                        raiting,
-                        username: name,
-                        restaurantName: place.name,
-                    });
-                } catch (error) {
-                    console.error('Error al guardar el raiting en Firestore:', error);
+                        // Actualiza el rating del restaurante
+                        updateDoc(restaurantDocRef, { raiting: newRaiting })
+                            .then(() => {
+                                // Actualiza el estado de las reviews del restaurante por nombre
+                                fetchRestaurantRaitingFromFirestore(place.name);
+                            })
+                            .catch((error) => {
+                                console.error('Error al actualizar el rating en Firestore:', error);
+                            });
+                    } else {
+                        // Si no existe un documento, crea uno nuevo
+                        const newRaiting = {
+                            author_name: name,
+                            raiting: raitingValue,
+                        };
+
+                        setDoc(restaurantDocRef, newRaiting)
+                            .then(() => {
+                                // Actualiza el estado de las reviews del restaurante por nombre
+                                fetchRestaurantRaitingFromFirestore(place.name);
+                            })
+                            .catch((error) => {
+                                console.error('Error al agregar el comentario en Firestore:', error);
+                            });
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error al obtener el documento del restaurante en Firestore:', error);
+                });
+        }
+    };
+
+    const addToFavorites = async (placeName, photoReference) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        if (user) {
+            const userId = user.uid;
+            const favoritesRef = doc(collection(db, 'favorites'), userId);
+
+            try {
+                // Verifica si el documento de favoritos existe
+                const favoritesDoc = await getDoc(favoritesRef);
+
+                if (!favoritesDoc.exists()) {
+                    // Si no existe, crea el documento de favoritos
+                    await setDoc(favoritesRef, { places: [] });
                 }
-            } else {
-                console.error('Usuario no autenticado');
+
+                // Agrega el lugar al array de lugares en favoritos
+                await updateDoc(favoritesRef, {
+                    places: arrayUnion({ name: placeName, photoReference }),
+                });
+
+                console.log('Lugar agregado a favoritos');
+                Alert.alert('Lugar agregado a favoritos');
+                // Actualiza la lista local después de agregar el lugar a favoritos
+                setFavorites((prevFavorites) => [...prevFavorites, { name: placeName, photoReference }]);
+            } catch (error) {
+                console.error('Error al agregar el lugar a favoritos:', error);
             }
+        } else {
+            console.log('Usuario no autenticado');
         }
     };
-
-    const fetchRaitingFromFirestore = async (userName, restaurantName) => {
-        const raitingCollectionRef = collection(db, 'raiting');
-        const raitingQuery = query(raitingCollectionRef, where('username', '==', userName), where('restaurantName', '==', restaurantName));
-
-        try {
-            const raitingSnapshot = await getDocs(raitingQuery);
-
-            if (!raitingSnapshot.empty) {
-                // Obtiene el primer documento de la colección (debería ser único por usuario y restaurante)
-                const firstDocument = raitingSnapshot.docs[0];
-                const raitingData = firstDocument.data();
-                // Devuelve el raiting del usuario para el restaurante específico
-                return raitingData.raiting;
-            } else {
-                // Si no hay datos, devuelve 0 o el valor predeterminado según tu lógica
-                return 0;
-            }
-        } catch (error) {
-            console.error('Error al obtener el raiting de Firestore:', error);
-            // Maneja el error según tus necesidades
-            return 0;
-        }
-    };
-
-   
-
-    // Llama a esta función cuando necesites obtener el raiting del usuario para el restaurante actual
-    useEffect(() => {
-        const getRaiting = async () => {
-            const userRaiting = await fetchRaitingFromFirestore(name, place.name);
-            setRaiting(userRaiting);
-        };
-
-        getRaiting();
-    }, [name, place.name]); 
-
-    console.log(raiting)
-
 
 
     return (
+        
         <SafeAreaView style={{flex: 1}}>
+           
             <View style={{ alignSelf: "center" }}>
                 {place?.photos?.[0]?.photo_reference ? (
                     <Image
@@ -218,9 +259,10 @@ useEffect(() => {
             <View style={{ marginHorizontal: 40, borderTopWidth: .2, borderTopColor: "rgba(0,0,0,0.2)", marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                 <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 20, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
                     <Icon name="star" size={20} color="white" />
-                    <Text style={{ color: "white", textAlign: "center" }}>{(place.rating).toFixed(1)}</Text>
+                    <Text style={{ color: "white", textAlign: "center" }}>{`${raiting.length > 0 ? raiting[0].raiting.toFixed(1) : '0'}`}</Text>
+
                 </View>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => addToFavorites(place.name, place?.photos?.[0]?.photo_reference)}>
                     <Icon name="heart" size={30} color="#EF9F27" />
                 </TouchableOpacity>
             </View>
@@ -242,44 +284,39 @@ useEffect(() => {
 
 
             </View>
-            <ScrollView showsVerticalScrollIndicator={false} style={{flex: 1}}
-            >
-            {reviews?.map((review, index) => (
 
-                <View key={index} style={{ marginHorizontal: 40, marginTop: 20, }}>
+            {loading ? <ActivityIndicator style={{ flex: 1, justifyContent: "center", alignSelf: "center" }} size="large" color="#EF9F27" /> : (
+                <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}
+                >
+                    {reviews?.map((review, index) => (
 
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <View style={{ flexDirection: "row", }}>
+                        <View key={index} style={{ marginHorizontal: 40, marginTop: 20, }}>
 
-                            <Image source={require('../../../assets/images/Image.png')} style={{ marginRight: 15 }} />
-                            <View>
-                                <Text style={{ padding: 2 }}>{review.author_name}</Text>
-                                <View style={{ flexDirection: "row" }}>
-                                    {/* Renderiza las estrellas según el raiting obtenido de Firestore */}
-                                    {raiting ? (
-                                        Array.from({ length: raiting }).map((_, i) => (
-                                            <Icon key={i} style={{ marginRight: 5 }} name="star" size={15} color="#EF9F27" />
-                                        ))
-                                    ) : (
-                                        <Text style={{fontSize:12, color: "gray"}}>No hay raiting disponible</Text>
-                                    )}
+                            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                                <View style={{ flexDirection: "row", }}>
+
+                                    <Image source={require('../../../assets/images/Image.png')} style={{ marginRight: 15 }} />
+                                    <View>
+                                        <Text style={{ padding: 2 }}>{review.author_name}</Text>
+
+                                    </View>
+
                                 </View>
-                            </View>
 
+                                <Text style={{ color: "gray" }}>{review.relative_time_description}</Text>
+                            </View>
+                            <Text style={{ fontSize: 16, marginVertical: 8, marginBottom: 20 }}>{review.text}</Text>
+                            <View style={{ height: .5, width: "100%", backgroundColor: "#ccc" }}></View>
                         </View>
 
-                        <Text style={{ color: "gray" }}>{review.relative_time_description}</Text>
-                    </View>
-                    <Text style={{ fontSize: 16, marginVertical: 8, marginBottom: 20 }}>{review.text}</Text>
-                    <View style={{ height: .5, width: "100%", backgroundColor: "#ccc" }}></View>
-                </View>
-
-            ))}
-               
+                    ))}
 
 
 
-            </ScrollView>
+
+                </ScrollView>
+            )}
+          
 
             <Modal
                 animationType="slide"
