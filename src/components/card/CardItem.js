@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native'
 import React, { useEffect } from 'react'
 import Items from "../../utils/items"
 import { ENV } from '../../utils/constants';
+import { Icon } from "react-native-elements";
 
 // export default function CardItem() {
 //     return (
@@ -49,8 +50,13 @@ export default function CardItem({ place }) {
                 />
                 <View>
                     <Text style={styles.title}>{place.name}</Text>
+                    <Text style={styles.title}>{place.vicinity}</Text>
                     <Text style={styles.subTitle}>{place.category}</Text>
-                    <Text style={styles.subTitle}>{place.rating}</Text>
+                    <View style={{ backgroundColor: "#EF9F27", borderRadius: 20, marginVertical: 10, padding: 5, width: 70, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
+                        <Icon name="star" size={20} color="white" />
+                        <Text style={{ color: "white", textAlign: "center" }}>{place.rating}</Text>
+                    </View>
+                    
                 </View>
             </TouchableOpacity>
         </View>
